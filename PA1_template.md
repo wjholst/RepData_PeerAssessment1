@@ -1,13 +1,6 @@
----
-title: "Reproducible Research - Project 1"
-author: "Bill Holst"
-date: "January 5, 2016"
-output:
-  html_document:
-    keep_md: true
-
-
----
+# Reproducible Research - Project 1
+Bill Holst  
+January 5, 2016  
 ## Overview
 
 This is an R markdown file that facilitates repeatable, reproducible research. This file supports Project One in the Reproducible Research segment of the Coursera class.
@@ -18,10 +11,21 @@ Please see the Readme.md document for a detailed description of the project.
 
 First, we need to establish our work environment and download the file if we haven't done so already. The unzipped file is called activity.csv.
 
-```{r, echo=TRUE}
 
+```r
 setwd("~/GitHub/RepData_PeerAssessment1")
 dir ()
+```
+
+```
+##  [1] "activity.csv"              "activity.zip"             
+##  [3] "doc"                       "instructions_fig"         
+##  [5] "PA1_template.html"         "PA1_template.Rmd"         
+##  [7] "README.md"                 "ReproducibleResearch.html"
+##  [9] "ReproducibleResearch.Rmd"  "zipfile.zip"
+```
+
+```r
 UrlName<-"http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 
 zipfile<- "zipfile.zip"
@@ -42,8 +46,25 @@ if (!file.exists(zipfile)) {
 
 ActivityData = read.csv ("activity.csv")
 dim(ActivityData)
-summary(ActivityData)
+```
 
+```
+## [1] 17568     3
+```
+
+```r
+summary(ActivityData)
+```
+
+```
+##      steps                date          interval     
+##  Min.   :  0.00   2012-10-01:  288   Min.   :   0.0  
+##  1st Qu.:  0.00   2012-10-02:  288   1st Qu.: 588.8  
+##  Median :  0.00   2012-10-03:  288   Median :1177.5  
+##  Mean   : 37.38   2012-10-04:  288   Mean   :1177.5  
+##  3rd Qu.: 12.00   2012-10-05:  288   3rd Qu.:1766.2  
+##  Max.   :806.00   2012-10-06:  288   Max.   :2355.0  
+##  NA's   :2304     (Other)   :15840
 ```
 
 ## What is mean total number of steps taken per day?
@@ -52,21 +73,37 @@ A quick look at the data via the summary shows the mean number of steps per 5 mi
 
 First compute the total steps for each day. Then calculated the mean and median.
 
-```{r, echo=TRUE}
+
+```r
 DailySteps =  aggregate(x = ActivityData$steps , by =     list(ActivityData$date), FUN = sum ,na.rm=TRUE)
 names(DailySteps) = c("Date","Daily.Steps")
 ```
 The daily mean and median steps are:
-```{r, echo=TRUE}
+
+```r
 mean(DailySteps$Daily.Steps)
+```
+
+```
+## [1] 9354.23
+```
+
+```r
 median(DailySteps$Daily.Steps)
+```
+
+```
+## [1] 10395
 ```
 
 We can also view the daily step data as a histogram, so we understand what the typical daily profile might be.
 
-```{r, echo=TRUE}
+
+```r
 hist(DailySteps$Daily.Steps,15, xlab="Mean daily steps",main="Histogram of Daily Steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 ## What is the average daily activity pattern?
 
@@ -75,23 +112,30 @@ The next question to address is what the daily pattern for step activity is for 
 
 To provide this information, we make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
 
-```{r, echo=TRUE}
+
+```r
 library(ggplot2)
 TimeSeries = aggregate(x = ActivityData$steps,by =     list(ActivityData$interval), FUN = mean, na.rm = TRUE )
 names(TimeSeries) <- c("Interval","Steps")
 ggplot(TimeSeries,aes(Interval,Steps)) +
      ggtitle("Time Series Plot - Mean Steps by Interval") +
      geom_line()
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
 
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?  To determine this we find the max and then find the interval when that occurs.
 
-```{r, echo=TRUE}
+
+```r
 MaxSteps = max(TimeSeries$Steps)
 # Select the interval when the max occurs
 int=TimeSeries[TimeSeries$Steps==MaxSteps,]
 cat("Maximum steps are",round(MaxSteps), "occuring in interval", int[,1])
+```
+
+```
+## Maximum steps are 206 occuring in interval 835
 ```
 
 
@@ -102,19 +146,45 @@ There are a fairly large number of missing values (marked as NA) in the dataset.
 
 First we find out the extent of the missing values, i.e. how many rows contain NAs.
 
-```{r, echo=TRUE}
+
+```r
 library(scales)
 cat("Total number of missing step records:",nrow(ActivityData[is.na(ActivityData$steps),]))
+```
+
+```
+## Total number of missing step records: 2304
+```
+
+```r
 cat("which represents",percent(nrow(ActivityData[is.na(ActivityData$steps),])/
                               nrow(ActivityData[])),"of the total.")
 ```
 
+```
+## which represents 13.1% of the total.
+```
+
 We will fill the missing values with the mean for the interval over the entire period, which represents a typical daily profile.  The TimeSeries variable contains this data.
 
-```{r, echo=TRUE}
+
+```r
 ActivityData.ImputedSteps = merge(ActivityData, TimeSeries, by.x = "interval", by.y = "Interval", all.x = TRUE)
 summary(ActivityData.ImputedSteps)
+```
 
+```
+##     interval          steps                date           Steps        
+##  Min.   :   0.0   Min.   :  0.00   2012-10-01:  288   Min.   :  0.000  
+##  1st Qu.: 588.8   1st Qu.:  0.00   2012-10-02:  288   1st Qu.:  2.486  
+##  Median :1177.5   Median :  0.00   2012-10-03:  288   Median : 34.113  
+##  Mean   :1177.5   Mean   : 37.38   2012-10-04:  288   Mean   : 37.383  
+##  3rd Qu.:1766.2   3rd Qu.: 12.00   2012-10-05:  288   3rd Qu.: 52.835  
+##  Max.   :2355.0   Max.   :806.00   2012-10-06:  288   Max.   :206.170  
+##                   NA's   :2304     (Other)   :15840
+```
+
+```r
 # note that the "steps" variable in the TimeSeries had been renamed to "Steps"
 
 ActivityData.ImputedSteps[is.na(ActivityData.ImputedSteps$steps),c("steps")] <-     ActivityData.ImputedSteps[is.na(ActivityData.ImputedSteps$steps),c("Steps")]
@@ -128,18 +198,32 @@ names(DailySteps.Imputed) <- c("Date","Daily.Steps")
 ```
 
 The daily mean and median steps are:
-```{r, echo=TRUE}
 
+```r
 mean(DailySteps.Imputed$Daily.Steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(DailySteps.Imputed$Daily.Steps)
+```
+
+```
+## [1] 10766.19
 ```
 The mean and are now both greater, because we have essentially added values to intervals within days that did not have data.  Thus, the daily totals are all generally higher, resulting in larger mean and median values.
 
 We can now view the imputed daily step data as a histogram, so we understand what the typical daily profile might be.  Note that this differs from the prior histogram, in that frequency of days near zero has dropped, thereby shifting the mean and median higher. 
 
-```{r, echo=TRUE}
+
+```r
 hist(DailySteps.Imputed$Daily.Steps,15, xlab="Mean daily steps (imputed)",main="Histogram of Daily Steps (Imputed")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -147,8 +231,8 @@ To determine this, we must tag each record whether it is a weekday or weekend.
 
 For this part, we use the weekdays() function to put the data into two separate groups, one for weekdays and one for weekends. We plot these on the same graph to observe the difference.
 
-```{r, echo=TRUE}
 
+```r
 ActivityData.ImputedSteps$weekday = as.factor(ifelse(weekdays(as.Date(ActivityData.ImputedSteps$date)) %in% c("Saturday","Sunday"), "Weekend", "Weekday")) 
 
 StepsbyInterval.Weekday.Weekend =
@@ -165,15 +249,18 @@ WeekDaySteps=StepsbyInterval.Weekday.Weekend[StepsbyInterval.Weekday.Weekend$wee
 
 The project instructions suggested the use of a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
-```{r, echo=TRUE}
+
+```r
 ggplot(StepsbyInterval.Weekday.Weekend, aes(Interval,Steps))+geom_line()+
      facet_wrap( ~ weekend , ncol=1)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+
 However, after producing this, the graph did not clearly indicate the direct difference between weekday and weekend activity.  Therefore, we present a simple plot with both data displayed on the same graph over the same time period.  It clearly indicates that the subject is more active earlier in the day on weekdays. The individual seems to wake every day around 6am and take a morning walk during the week around 9am; s(he) seems to sleep in during the same period on weekends.  
 
-```{r, echo=TRUE}
 
+```r
 # plot on the same graph
 
 
@@ -182,8 +269,9 @@ ggplot() + geom_line(data=WeekDaySteps,
     geom_line (data=WeekEndSteps,
     mapping = aes(x=Interval,y=Steps,color="Weekend")) +
     labs(color="Week Period")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
 
 ##References
 
